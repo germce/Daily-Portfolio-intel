@@ -45,6 +45,7 @@ for symbol in tickers:
                 if eps and float(eps) > 0:
                     pe = round(price / float(eps), 1)
             except Exception:
+                pe = None
                 pass
         entry.update({
             "price": price,
