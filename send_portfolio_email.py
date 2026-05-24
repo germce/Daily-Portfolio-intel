@@ -25,7 +25,27 @@ for symbol in tickers:
             pe = ticker.info.get("trailingPE")
             pe = round(pe, 1) if pe else None
         except Exception:
-            pe = None
+            # P/E ratio — try multiple sources
+        pe = None
+        try:
+            info = ticker.info
+            pe = (
+                info.get("trailingPE")
+                or info.get("forwardPE")
+                or info.get("pegRatio")
+            )
+            pe = round(float(pe), 1) if pe and float(pe) > 0 else None
+        except Exception:
+            pass
+
+        # fallback: calculate manually from fast_info
+        if pe is None:
+            try:
+                eps = ticker.info.get("trailingEps")
+                if eps and float(eps) > 0:
+                    pe = round(price / float(eps), 1)
+            except Exception:
+                pass
         entry.update({
             "price": price,
             "change": change,
