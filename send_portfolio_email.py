@@ -9,8 +9,6 @@ from datetime import date, datetime, timezone
 with open("tickers.json") as f:
     tickers = json.load(f)  # e.g. ["AAPL", "MSFT", "TSLA"]
 
-MAX_NEWS = 5  # max news items per ticker
-
 # Fetch stock data + news
 stocks = []
 for symbol in tickers:
@@ -34,7 +32,7 @@ for symbol in tickers:
     try:
         raw_news = ticker.news or []
         news_items = []
-        for item in raw_news[:MAX_NEWS]:
+        for item in raw_news:
             content = item.get("content", {})
             title = content.get("title") or item.get("title", "No title")
             url = (
