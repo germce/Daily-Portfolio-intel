@@ -7,79 +7,75 @@ from datetime import date, datetime, timezone
 
 # Load tickers
 with open("tickers.json") as f:
-    tickers = json.load(f)  # e.g. ["AAPL", "MSFT", "TSLA"]
+    tickers = json.load(f)
 
 # Fetch stock data + news
 stocks = []
 for symbol in tickers:
     entry = {"symbol": symbol}
+    ticker = yf.Ticker(symbol)
+
+    # ── Price & P/E ──
     try:
-        ticker = yf.Ticker(symbol)
-        info = ticker.fast_info
-        price = round(info.last_price, 2)
-        prev_close = round(info.previous_close, 2)
+        fast = ticker.fast_info
+        price = round(fast.last_price, 2)
+        prev_close = round(fast.previous_close, 2)
         change = round(price - prev_close, 2)
         pct = round((change / prev_close) * 100, 2)
- # P/E ratio — trailing P/E from info dict
-        try:
-            pe = ticker.info.get("trailingPE")
-            pe = round(pe, 1) if pe else None
-        except Exception: pe = None
- # P/E ratio — try multiple sources
+
         pe = None
         try:
             info = ticker.info
-            raw_pe = (
-                info.get("trailingPE")
-                or info.get("forwardPE")
-                or info.get("pegRatio")
-            )
+            raw_pe = info.get("trailingPE") or info.get("forwardPE")
             if raw_pe and float(raw_pe) > 0:
                 pe = round(float(raw_pe), 1)
-            # fallback: calculate manually from EPS
             if pe is None:
                 eps = info.get("trailingEps")
                 if eps and float(eps) > 0:
                     pe = round(price / float(eps), 1)
         except Exception:
             pe = None
-                pass
+
         entry.update({
             "price": price,
             "change": change,
             "pct": pct,
             "arrow": "🟢" if change >= 0 else "🔴",
+            "pe": pe,
         })
     except Exception as e:
         entry["price_error"] = str(e)
 
+    # ── News (last 36 hours) ──
     try:
         raw_news = ticker.news or []
         cutoff = datetime.now(tz=timezone.utc).timestamp() - (36 * 3600)
         news_items = []
         for item in raw_news:
-            # filter to last 36 hours
             content = item.get("content", {})
+
+            # parse timestamp for filtering
             pub_ts = content.get("pubDate") or item.get("providerPublishTime")
             if isinstance(pub_ts, str):
                 try:
                     ts = datetime.fromisoformat(pub_ts.replace("Z", "+00:00")).timestamp()
                 except Exception:
-                    ts = cutoff  # if unparseable, include it
+                    ts = cutoff
             elif isinstance(pub_ts, (int, float)):
                 ts = float(pub_ts)
             else:
-                ts = cutoff  # if missing, include it
+                ts = cutoff
+
             if ts < cutoff:
                 continue
-            content = item.get("content", {})
+
+            # parse display fields
             title = content.get("title") or item.get("title", "No title")
             url = (
                 content.get("canonicalUrl", {}).get("url")
                 or content.get("clickThroughUrl", {}).get("url")
                 or item.get("link", "#")
             )
-            pub_ts = content.get("pubDate") or item.get("providerPublishTime")
             if isinstance(pub_ts, str):
                 try:
                     pub_date = datetime.fromisoformat(pub_ts.replace("Z", "+00:00")).strftime("%b %d")
@@ -91,22 +87,23 @@ for symbol in tickers:
                 pub_date = ""
             publisher = content.get("provider", {}).get("displayName") or item.get("publisher", "")
             news_items.append({"title": title, "url": url, "date": pub_date, "publisher": publisher})
+
         entry["news"] = news_items
     except Exception as e:
         entry["news_error"] = str(e)
         entry["news"] = []
 
     stocks.append(entry)
-    time.sleep(0.4)  # be kind to Yahoo's rate limits
+    time.sleep(0.4)
 
-# ── HTML builder helpers ──────────────────────────────────────────────────────
+# ── HTML helpers ──────────────────────────────────────────────────────────────
 
 def price_row(r):
     if "price_error" in r:
-        return f"<tr><td><b>{r['symbol']}</b></td><td colspan='3' style='color:#9ca3af'>Price unavailable: {r['price_error']}</td></tr>"
+        return f"<tr><td><b>{r['symbol']}</b></td><td colspan='4' style='color:#9ca3af'>Price unavailable: {r['price_error']}</td></tr>"
     color = "#16a34a" if r["change"] >= 0 else "#dc2626"
     sign = "+" if r["change"] >= 0 else ""
-    pe_display = f"{r['pe']}x" if r.get('pe') else "<span style='color:#9ca3af'>N/A</span>"
+    pe_display = f"{r['pe']}x" if r.get("pe") else "<span style='color:#9ca3af'>N/A</span>"
     return f"""
     <tr>
       <td style='padding:8px 12px;font-weight:bold'>{r['arrow']} {r['symbol']}</td>
@@ -122,13 +119,11 @@ def news_section(r):
     if not items and "news_error" in r:
         return f"<p style='color:#9ca3af;font-size:13px'>News unavailable for {symbol}: {r['news_error']}</p>"
     if not items:
-        return f"<p style='color:#9ca3af;font-size:13px'>No recent news for {symbol}.</p>"
-
+        return f"<p style='color:#9ca3af;font-size:13px'>No news in the last 36 hours for {symbol}.</p>"
     bullets = ""
     for n in items:
         meta = f"<span style='color:#9ca3af;font-size:11px'> · {n['publisher']}" + (f" · {n['date']}" if n['date'] else "") + "</span>"
         bullets += f"<li style='margin-bottom:6px'><a href='{n['url']}' style='color:#2563eb;text-decoration:none'>{n['title']}</a>{meta}</li>"
-
     return f"""
     <div style='margin-bottom:24px'>
       <h3 style='margin:0 0 8px;font-size:15px;color:#111827'>{symbol} — Latest News</h3>
@@ -138,15 +133,13 @@ def news_section(r):
 # ── Assemble email ────────────────────────────────────────────────────────────
 
 today = date.today().strftime("%B %d, %Y")
-
 price_rows = "".join(price_row(s) for s in stocks)
 news_sections = "".join(news_section(s) for s in stocks)
 
 html = f"""
 <html><body style='font-family:sans-serif;max-width:640px;margin:auto;color:#111827'>
-
   <h2 style='margin-bottom:4px'>📈 Portfolio Update — {today}</h2>
-  <p style='color:#6b7280;margin-top:0;font-size:13px'>Prices vs. previous close · News via Yahoo Finance</p>
+  <p style='color:#6b7280;margin-top:0;font-size:13px'>Prices vs. previous close · News from last 36 hours · Data via Yahoo Finance</p>
 
   <table style='width:100%;border-collapse:collapse;border:1px solid #e5e7eb;margin-bottom:32px'>
     <thead>
@@ -166,7 +159,6 @@ html = f"""
 
   <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'>
   <p style='color:#9ca3af;font-size:11px'>Sent automatically by GitHub Actions · Data via Yahoo Finance · {today}</p>
-
 </body></html>
 """
 
