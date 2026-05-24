@@ -2,8 +2,11 @@ name: Daily Portfolio Email
 
 on:
   schedule:
-    - cron: '0 8 * * 1-5'   # 8:00 AM UTC, Mon–Fri
-  workflow_dispatch:          # allows manual trigger from GitHub UI
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt into Node.js 24 now
 
 jobs:
   send-email:
@@ -11,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
 
