@@ -20,6 +20,12 @@ for symbol in tickers:
         prev_close = round(info.previous_close, 2)
         change = round(price - prev_close, 2)
         pct = round((change / prev_close) * 100, 2)
+ # P/E ratio — trailing P/E from info dict
+        try:
+            pe = ticker.info.get("trailingPE")
+            pe = round(pe, 1) if pe else None
+        except Exception:
+            pe = None
         entry.update({
             "price": price,
             "change": change,
@@ -82,12 +88,14 @@ def price_row(r):
         return f"<tr><td><b>{r['symbol']}</b></td><td colspan='3' style='color:#9ca3af'>Price unavailable: {r['price_error']}</td></tr>"
     color = "#16a34a" if r["change"] >= 0 else "#dc2626"
     sign = "+" if r["change"] >= 0 else ""
+    pe_display = f"{r['pe']}x" if r.get('pe') else "<span style='color:#9ca3af'>N/A</span>"
     return f"""
     <tr>
       <td style='padding:8px 12px;font-weight:bold'>{r['arrow']} {r['symbol']}</td>
       <td style='padding:8px 12px'>${r['price']}</td>
       <td style='padding:8px 12px;color:{color}'>{sign}{r['change']}</td>
       <td style='padding:8px 12px;color:{color}'>{sign}{r['pct']}%</td>
+      <td style='padding:8px 12px'>{pe_display}</td>
     </tr>"""
 
 def news_section(r):
@@ -129,6 +137,7 @@ html = f"""
         <th style='padding:8px 12px'>Price</th>
         <th style='padding:8px 12px'>Change</th>
         <th style='padding:8px 12px'>% Change</th>
+        <th style='padding:8px 12px'>P/E Ratio</th>
       </tr>
     </thead>
     <tbody>{price_rows}</tbody>
