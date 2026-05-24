@@ -1,0 +1,32 @@
+timezone: Europe/Zurich email: subject_prefix: "Daily Portfolio Brief" to: "germce.chu@gmail.com”
+tickers: MMM: name: "3M Company" news: - news.google.com - news.3m.com filings: - sec.gov patents: - patents.google.com
+ABBN: name: "ABB Ltd" news: - news.google.com - global.abb filings: [] patents: - patents.google.com
+ADEN: name: "Adecco Group AG" news: - news.google.com - press.adeccogroup.com filings: [] patents: - patents.google.com
+NVO: name: "Novo Nordisk A/S" news: - news.google.com - novonordisk.com filings: - sec.gov patents: - patents.google.com
+SNY: name: "Sanofi" news: - news.google.com - sanofi.com filings: - sec.gov patents: - patents.google.com
+SQM: name: "Sociedad Química y Minera de Chile S.A." news: - news.google.com filings: - sec.gov patents: - patents.google.com
+GOOGL: name: "Alphabet Inc." news: - news.google.com filings: - sec.gov patents: - patents.google.com
+AMGN: name: "Amgen Inc." news: - news.google.com - amgen.com filings: - sec.gov patents: - patents.google.com
+AAPL: name: "Apple Inc." news: - news.google.com - apple.com filings: - sec.gov patents: - patents.google.com
+BDX: name: "Becton, Dickinson and Company" news: - news.google.com - investors.bd.com filings: - sec.govpatents: - patents.google.com
+AVGO: name: "Broadcom Inc." news: - news.google.com - investors.broadcom.com filings: - sec.gov patents: - patents.google.com
+COF: name: "Capital One Financial Corporation" news: - news.google.com - press.capitalone.com filings: - sec.govpatents: - patents.google.com
+LLY: name: "Eli Lilly and Company" news: - news.google.com - investor.lilly.com filings: - sec.gov patents: - patents.google.com
+ENEL: name: "Enel S.p.A." news: - news.google.com - enel.com filings: [] patents: - patents.google.com
+MDT: name: "Medtronic plc" news: - news.google.com - news.medtronic.com filings: - sec.gov patents: - patents.google.com
+MRK: name: "Merck & Co., Inc." news: - news.google.com - merck.com filings: - sec.gov patents: - patents.google.com
+NESN: name: "Nestlé S.A." news: - news.google.com - nestle.com filings: [] patents: - patents.google.com
+NFLX: name: "Netflix, Inc." news: - news.google.com - about.netflix.com filings: - sec.gov patents: - patents.google.com
+NEM: name: "Newmont Corporation" news: - news.google.com - newmont.com filings: - sec.gov patents: - patents.google.com
+NVDA: name: "NVIDIA Corporation" news: - news.google.com - nvidianews.nvidia.com filings: - sec.gov patents: - patents.google.com
+PG: name: "Procter & Gamble Company" news: - news.google.com - news.pg.com filings: - sec.gov patents: - patents.google.com
+RCAT: name: "Red Cat Holdings, Inc." news: - news.google.com filings: - sec.gov patents: []
+ROG: name: "Roche Holding AG" news: - news.google.com - roche.com filings: [] patents: - patents.google.com
+SDZ: name: "Sandoz Group AG" news: - news.google.com - sandoz.com filings: [] patents: - patents.google.com
+SCHN: name: "Schindler Holding AG" news: - news.google.com - group.schindler.com filings: [] patents: - patents.google.com
+UCG: name: "UniCredit S.p.A." news: - news.google.com - unicreditgroup.eu filings: [] patents: []
+UPS: name: "United Parcel Service, Inc." news: - news.google.com - about.ups.com filings: - sec.gov patents: - patents.google.com
+VUSA: name: "Vanguard S&P 500 UCITS ETF" news: - news.google.com - vanguard.co.uk filings: [] patents: []
+WAT: name: "Waters Corporation" news: - news.google.com - ir.waters.com filings: - sec.gov patents: - patents.google.com
+ZEAL: name: "Zealand Pharma A/S" news: - news.google.com - zealandpharma.com filings: [] patents: - patents.google.com
+ZBH: name: "Zimmer Biomet Holdings, Inc." news: - news.google.com - investor.zimmerbiomet.com filings: - sec.govpatents: - patents.google.com
