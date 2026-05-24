@@ -2,7 +2,8 @@ name: Daily Portfolio Brief
 on: 
   schedule:
     - cron: "0 5 * * *" 
-  workflow_dispatch: jobs: 
+  workflow_dispatch: 
+  jobs: 
   run: 
     runs-on: ubuntu-latest 
     steps: - run: echo "ping"
