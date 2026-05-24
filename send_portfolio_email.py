@@ -24,7 +24,7 @@ for symbol in tickers:
         try:
             pe = ticker.info.get("trailingPE")
             pe = round(pe, 1) if pe else None
-        except Exception:
+        except Exception: pe = None
             # P/E ratio — try multiple sources
        # P/E ratio — try multiple sources
         pe = None
