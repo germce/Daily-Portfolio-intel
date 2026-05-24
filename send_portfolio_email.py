@@ -31,8 +31,23 @@ for symbol in tickers:
 
     try:
         raw_news = ticker.news or []
+        cutoff = datetime.now(tz=timezone.utc).timestamp() - (36 * 3600)
         news_items = []
         for item in raw_news:
+            # filter to last 36 hours
+            content = item.get("content", {})
+            pub_ts = content.get("pubDate") or item.get("providerPublishTime")
+            if isinstance(pub_ts, str):
+                try:
+                    ts = datetime.fromisoformat(pub_ts.replace("Z", "+00:00")).timestamp()
+                except Exception:
+                    ts = cutoff  # if unparseable, include it
+            elif isinstance(pub_ts, (int, float)):
+                ts = float(pub_ts)
+            else:
+                ts = cutoff  # if missing, include it
+            if ts < cutoff:
+                continue
             content = item.get("content", {})
             title = content.get("title") or item.get("title", "No title")
             url = (
