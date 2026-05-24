@@ -97,46 +97,8 @@ html = Template(HTML_TMPL).render(
     sections=sections,
     generated_local=generated_local
 )
-# send via SMTP
-smtp_host = os.environ.get("SMTP_HOST")
-smtp_port = int(os.environ.get("SMTP_PORT", "587"))
-smtp_user = os.environ.get("SMTP_USER")
-smtp_pass = os.environ.get("SMTP_PASS")
-mail_to   = cfg.get("email", {}).get("to")
-if not all([smtp_host, smtp_user, smtp_pass, mail_to]):
-    print("Missing SMTP settings or recipient.", file=sys.stderr)
-    print("Required: SMTP_HOST, SMTP_USER, SMTP_PASS env vars; and email.to in feeds.yml", file=sys.stderr)
-    sys.exit(1)
-msg = MIMEText(html, "html", "utf-8")
-msg["Subject"] = subject
-msg["From"] = smtp_user
-msg["To"] = mail_to
-context = ssl.create_default_context()
-with smtplib.SMTP(smtp_host, smtp_port) as server:
-    server.starttls(context=context)
-    server.login(smtp_user, smtp_pass)
-    server.send_message(msg)
-if name == "main": main()
-D) Create file: .github/workflows/daily.yml Create folders .github then workflows (the web UI lets you create nested paths). Paste:
-name: Daily Portfolio Brief
-on: schedule: - cron: "0 5 * * *" # 07:00 Europe/Zurich = 05:00 UTC workflow_dispatch:
-jobs: run: runs-on: ubuntu-latest steps: - name: Checkout uses: actions/checkout@v4
+# send via Resend
+api_key = os.environ.get("RESEND_API_KEY") mail_to = cfg.get("email", {}).get("to") if not api_key or not mail_to: print("Missing RESEND_API_KEY or recipient email.", file=sys.stderr) sys.exit(1) import requests, json payload = { "from": "Daily Brief notifications@resend.dev", "to": [mail_to], "subject": subject, "html": html } r = requests.post( "
+api.resend.com
+", headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, data=json.dumps(payload), timeout=20 ) if r.status_code >= 300: print(f"Resend API error: {r.status_code} {r.text}", file=sys.stderr) sys.exit(1)
 
-
-  - name: Setup Python
-    uses: actions/setup-python@v5
-    with:
-      python-version: "3.11"
-  - name: Install deps
-    run: |
-      python -m pip install --upgrade pip
-      pip install -r requirements.txt
-      pip install pyyaml
-  - name: Build and send brief
-    env:
-      SMTP_HOST: ${{ secrets.SMTP_HOST }}
-      SMTP_PORT: ${{ secrets.SMTP_PORT }}
-      SMTP_USER: ${{ secrets.SMTP_USER }}
-      SMTP_PASS: ${{ secrets.SMTP_PASS }}
-    run: |
-      python build_brief.py
