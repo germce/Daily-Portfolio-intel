@@ -173,3 +173,10 @@ resend.Emails.send({
 })
 
 print(f"Email sent successfully for {len(stocks)} tickers.")
+
+- name: Keep repo active
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git commit --allow-empty -m "chore: keep workflow active [skip ci]"
+          git push
