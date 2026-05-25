@@ -2,11 +2,11 @@ name: Daily Portfolio Email
 
 on:
   schedule:
-    - cron: '0 8 * * 1-5'
+    - cron: '0 6 * * 1-5'   # 8:00 AM CET (UTC+2 summer)
   workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt into Node.js 24 now
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   send-email:
@@ -30,7 +30,8 @@ jobs:
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
         run: python send_portfolio_email.py
-- name: Keep repo active
+
+      - name: Keep repo active
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
