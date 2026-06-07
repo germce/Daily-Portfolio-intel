@@ -9,7 +9,8 @@ from datetime import date, datetime, timezone
 with open("tickers.json") as f:
     tickers = json.load(f)
 
-# Fetch stock data + news
+# ── Fetch market indices ──────────────────────────────────────────────────────
+
 def fetch_index(symbol, name):
     try:
         t = yf.Ticker(symbol)
@@ -27,12 +28,15 @@ indices = [
     fetch_index("^VIX", "VIX — Volatility Index"),
     fetch_index("^MOVE", "MOVE — Bond Volatility Index"),
 ]
+
+# ── Fetch stock data + news ───────────────────────────────────────────────────
+
 stocks = []
 for symbol in tickers:
     entry = {"symbol": symbol}
     ticker = yf.Ticker(symbol)
 
-    # ── Price & P/E ──
+    # Price & P/E
     try:
         fast = ticker.fast_info
         price = round(fast.last_price, 2)
@@ -63,7 +67,7 @@ for symbol in tickers:
     except Exception as e:
         entry["price_error"] = str(e)
 
-    # ── News (last 36 hours) ──
+    # News (last 36 hours)
     try:
         raw_news = ticker.news or []
         cutoff = datetime.now(tz=timezone.utc).timestamp() - (36 * 3600)
@@ -71,7 +75,6 @@ for symbol in tickers:
         for item in raw_news:
             content = item.get("content", {})
 
-            # parse timestamp for filtering
             pub_ts = content.get("pubDate") or item.get("providerPublishTime")
             if isinstance(pub_ts, str):
                 try:
@@ -86,7 +89,6 @@ for symbol in tickers:
             if ts < cutoff:
                 continue
 
-            # parse display fields
             title = content.get("title") or item.get("title", "No title")
             url = (
                 content.get("canonicalUrl", {}).get("url")
@@ -147,17 +149,32 @@ def news_section(r):
       <ul style='margin:0;padding-left:18px;line-height:1.6'>{bullets}</ul>
     </div>"""
 
-# ── Assemble email ────────────────────────────────────────────────────────────
+# ── Build HTML sections ───────────────────────────────────────────────────────
 
 today = date.today().strftime("%B %d, %Y")
+
+indices_rows = ""
+for idx in indices:
+    if "error" in idx:
+        indices_rows += f"<tr><td><b>{idx['name']}</b></td><td colspan='3' style='color:#9ca3af'>Unavailable</td></tr>"
+    else:
+        color = "#16a34a" if idx["change"] >= 0 else "#dc2626"
+        indices_rows += f"""
+        <tr>
+          <td style='padding:8px 12px;font-weight:bold'>{idx['arrow']} {idx['name']}</td>
+          <td style='padding:8px 12px'>{idx['price']}</td>
+          <td style='padding:8px 12px;color:{color}'>{idx['sign']}{idx['change']}</td>
+          <td style='padding:8px 12px;color:{color}'>{idx['sign']}{idx['pct']}%</td>
+        </tr>"""
+
 price_rows = "".join(price_row(s) for s in stocks)
 news_sections = "".join(news_section(s) for s in stocks)
 
-html = f"""
-<html><body style='font-family:sans-serif;max-width:640px;margin:auto;color:#111827'><h2 style='margin-bottom:4px'>📈 Portfolio Update — {today}</h2>
-  <p style='color:#6b7280;margin-top:0;font-size:13px'>Prices vs. previous close · News from last 36 hours · Data via Yahoo Finance</p>
+# ── Assemble email ────────────────────────────────────────────────────────────
 
- <h2 style='margin-bottom:4px'>📈 Portfolio Update — {today}</h2>
+html = f"""
+<html><body style='font-family:sans-serif;max-width:640px;margin:auto;color:#111827'>
+  <h2 style='margin-bottom:4px'>📈 Portfolio Update — {today}</h2>
   <p style='color:#6b7280;margin-top:0;font-size:13px'>Prices vs. previous close · News from last 36 hours · Data via Yahoo Finance</p>
 
   <h2 style='margin-bottom:8px'>🌡️ Market Sentiment</h2>
