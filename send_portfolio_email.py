@@ -10,6 +10,23 @@ with open("tickers.json") as f:
     tickers = json.load(f)
 
 # Fetch stock data + news
+def fetch_index(symbol, name):
+    try:
+        t = yf.Ticker(symbol)
+        price = round(t.fast_info.last_price, 2)
+        prev = round(t.fast_info.previous_close, 2)
+        change = round(price - prev, 2)
+        pct = round((change / prev) * 100, 2)
+        arrow = "🟢" if change >= 0 else "🔴"
+        sign = "+" if change >= 0 else ""
+        return {"name": name, "price": price, "change": change, "pct": pct, "arrow": arrow, "sign": sign}
+    except Exception as e:
+        return {"name": name, "error": str(e)}
+
+indices = [
+    fetch_index("^VIX", "VIX — Volatility Index"),
+    fetch_index("^MOVE", "MOVE — Bond Volatility Index"),
+]
 stocks = []
 for symbol in tickers:
     entry = {"symbol": symbol}
@@ -137,10 +154,26 @@ price_rows = "".join(price_row(s) for s in stocks)
 news_sections = "".join(news_section(s) for s in stocks)
 
 html = f"""
-<html><body style='font-family:sans-serif;max-width:640px;margin:auto;color:#111827'>
-  <h2 style='margin-bottom:4px'>📈 Portfolio Update — {today}</h2>
+<html><body style='font-family:sans-serif;max-width:640px;margin:auto;color:#111827'><h2 style='margin-bottom:4px'>📈 Portfolio Update — {today}</h2>
   <p style='color:#6b7280;margin-top:0;font-size:13px'>Prices vs. previous close · News from last 36 hours · Data via Yahoo Finance</p>
 
+ <h2 style='margin-bottom:4px'>📈 Portfolio Update — {today}</h2>
+  <p style='color:#6b7280;margin-top:0;font-size:13px'>Prices vs. previous close · News from last 36 hours · Data via Yahoo Finance</p>
+
+  <h2 style='margin-bottom:8px'>🌡️ Market Sentiment</h2>
+  <table style='width:100%;border-collapse:collapse;border:1px solid #e5e7eb;margin-bottom:32px'>
+    <thead>
+      <tr style='background:#f3f4f6;text-align:left'>
+        <th style='padding:8px 12px'>Index</th>
+        <th style='padding:8px 12px'>Value</th>
+        <th style='padding:8px 12px'>Change</th>
+        <th style='padding:8px 12px'>% Change</th>
+      </tr>
+    </thead>
+    <tbody>{indices_rows}</tbody>
+  </table>
+
+  <h2 style='margin-bottom:8px'>📊 Portfolio</h2>
   <table style='width:100%;border-collapse:collapse;border:1px solid #e5e7eb;margin-bottom:32px'>
     <thead>
       <tr style='background:#f3f4f6;text-align:left'>
